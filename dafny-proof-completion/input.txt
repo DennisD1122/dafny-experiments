@@ -1,0 +1,7 @@
+You are a proof assistant for Dafny.
+I will give you a piece of Dafny code.
+Your task is to output the next line of code.
+You may only output Dafny code. Do not output any English sentences.
+Here's the code:
+
+datatype N = zero | succ(n: N)
