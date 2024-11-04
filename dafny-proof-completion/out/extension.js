@@ -28,13 +28,30 @@ exports.deactivate = deactivate;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = __importStar(require("vscode"));
+const fs_1 = require("fs");
+function call_python(document, position, ...args) {
+    const fileName = document.fileName.substring(0, document.fileName.length - 4) + '.tmp.dfy';
+    (0, fs_1.writeFileSync)(fileName, document.getText(), { flag: "w" });
+    const execSync = require("child_process").execSync;
+    const result = execSync(`python "${__dirname}/../src/llm.py" "${fileName}" ${position.line} ${position.character} "${args.join('" "')}"`);
+    (0, fs_1.unlinkSync)(fileName);
+    return result.toString("utf8");
+}
 class DafnyProofCompletionItemProvider {
     provideCompletionItems(document, position, token, context) {
-        const fileName = document.fileName;
-        const execSync = require("child_process").execSync;
-        const result = execSync(`python "C:/Users/denni/OneDrive/Desktop/Courses/CS 91R/Code/dafny-proof-completion/src/llm.py" "${fileName}"`);
-        const result_str = result.toString("utf8");
-        return [new vscode.CompletionItem('hello, world'), new vscode.CompletionItem(result_str)];
+        const result = call_python(document, position, 'complete');
+        const idx = result.indexOf('\n');
+        const message = result.substring(0, idx - 1);
+        if (message === 'non-verification error') {
+            vscode.window.showInformationMessage('Program has errors unrelated to verification.');
+            return [];
+        }
+        if (message === 'verifies') {
+            vscode.window.showInformationMessage('Program verifies!');
+            return [];
+        }
+        const suggestion = result.substring(idx + 1);
+        return [new vscode.CompletionItem(suggestion)];
     }
 }
 // This method is called when your extension is activated
@@ -55,8 +72,37 @@ function activate(context) {
     // 	vscode.window.showInformationMessage('Suggest');
     // });
     let sel = { scheme: 'file', language: 'dafny' };
-    const disposable = vscode.languages.registerCompletionItemProvider(sel, new DafnyProofCompletionItemProvider());
-    context.subscriptions.push(disposable);
+    const completionItemProvider = vscode.languages.registerCompletionItemProvider(sel, new DafnyProofCompletionItemProvider());
+    context.subscriptions.push(completionItemProvider);
+    const goToVerificationError = vscode.commands.registerCommand('dafny-proof-completion.goToVerificationError', () => {
+        vscode.window.withProgress({
+            title: "Loading...",
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false
+        }, async (progress) => {
+            await new Promise((resolve) => {
+                if (vscode.window.activeTextEditor === undefined) {
+                    resolve(null);
+                    return;
+                }
+                const editor = vscode.window.activeTextEditor;
+                const document = editor.document;
+                const position = editor.selection.active;
+                const result = call_python(document, position, 'goto');
+                const goto_line = Number(result);
+                if (goto_line === -1) {
+                    vscode.window.showInformationMessage('Program verifies!');
+                    resolve(null);
+                    return;
+                }
+                const new_position = new vscode.Position(Number(goto_line), 0);
+                editor.selection = new vscode.Selection(new_position, new_position);
+                editor.revealRange(new vscode.Range(new_position, new_position), vscode.TextEditorRevealType.InCenter);
+                resolve(null);
+            });
+        });
+    });
+    context.subscriptions.push(goToVerificationError);
 }
 // This method is called when your extension is deactivated
 function deactivate() { }

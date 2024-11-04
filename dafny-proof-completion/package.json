@@ -26,6 +26,12 @@
         "key": "ctrl+alt+s",
         "mac": "cmd+alt+s",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "dafny-proof-completion.goToVerificationError",
+        "key": "ctrl+alt+g",
+        "mac": "cmd+alt+g",
+        "when": "editorTextFocus"
       }
     ]
   },

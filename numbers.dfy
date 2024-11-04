@@ -30,9 +30,7 @@ lemma lemma_add_commute_N(a: N, b: N)
     match a
     case zero => {}
     case succ(n) =>
-        // assert equal_N(add_N(succ(n), b), succ(add_N(n, b)));
-        // lemma_add_commute_N(n, b);
-        assert equal_N(add_N(b, succ(n)), succ(add_N(b, n)));
+        
 }
 
 
@@ -58,19 +56,7 @@ function mult_Z(a: Z, b: Z): Z
 lemma lemma_add_commute_Z(a: Z, b: Z)
     ensures equal_Z(add_Z(a, b), add_Z(b, a))
 {
-    // lemma_add_commute_N(a.n1, b.n1);
-    // lemma_add_commute_N(a.n2, b.n2);
-    // assert add_N(add_N(a.n1, b.n1), add_N(a.n2, b.n2)) == add_N(add_N(a.n2, b.n2), add_N(b.n1, a.n1));
-    // assert add_N(a.n2, b.n2) == add_N(b.n2, a.n2);
-    lemma_add_commute_N(add_N(a.n1, b.n1), add_N(a.n2, b.n2));
-    // assert add_N(add_N(a.n1, b.n1), add_N(a.n2, b.n2)) == add_N(add_N(a.n2, b.n2), add_N(a.n1, b.n1));
-    lemma_add_commute_N(a.n1, b.n1);
-    // assert add_N(add_N(a.n1, b.n1), add_N(a.n2, b.n2)) == add_N(add_N(a.n2, b.n2), add_N(b.n1, a.n1));
-    lemma_add_commute_N(a.n2, b.n2);
-    // assert add_N(add_N(a.n1, b.n1), add_N(b.n2, a.n2)) == add_N(add_N(a.n2, b.n2), add_N(b.n1, a.n1));
-    // assert add_N(add_Z(a, b).n1, add_Z(b, a).n2) == add_N(add_Z(a, b).n2, add_Z(b, a).n1);
-    // assert equal_N(add_N(add_Z(a, b).n1, add_Z(b, a).n2), add_N(add_Z(a, b).n2, add_Z(b, a).n1));
-    // assert equal_Z(add_Z(a, b), add_Z(b, a));
+    
 }
 
 
@@ -80,4 +66,3 @@ predicate equal_Q(a: Q, b: Q)
 {
     equal_Z(mult_Z(a.z1, b.z2), mult_Z(a.z2, b.z1))
 }
-
